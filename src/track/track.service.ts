@@ -10,6 +10,31 @@ import { UpdateTrackDto } from './dto/updateTrack.dto';
 export class TrackService {
   constructor(private db: DbService) {}
 
+  private async checkEntityExistence(body: {
+    artistId?: string;
+    albumId?: string;
+  }) {
+    if (body.artistId) {
+      const isExistsArtist = this.db.checkEntityExistence(
+        body.artistId,
+        EDbEntity.ARTISTS,
+      );
+      if (!isExistsArtist) {
+        throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
+      }
+    }
+
+    if (body.albumId) {
+      const isExistsAlbum = this.db.checkEntityExistence(
+        body.albumId,
+        EDbEntity.ALBUMS,
+      );
+      if (!isExistsAlbum) {
+        throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
+      }
+    }
+  }
+
   async findAll() {
     return this.db.tracks;
   }
@@ -25,22 +50,7 @@ export class TrackService {
   }
 
   async create(body: CreateTrackDto) {
-    const isExistsArtist = this.db.checkEntityExistence(
-      body.artistId,
-      EDbEntity.ARTISTS,
-    );
-    const isExistsAlbum = this.db.checkEntityExistence(
-      body.albumId,
-      EDbEntity.ALBUMS,
-    );
-
-    if (body.artistId && !isExistsArtist) {
-      throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
-    }
-
-    if (body.albumId && !isExistsAlbum) {
-      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
-    }
+    await this.checkEntityExistence(body);
 
     const createdTrack = new TrackEntity(body);
 
@@ -52,22 +62,7 @@ export class TrackService {
   async update(id: string, body: UpdateTrackDto) {
     const currentTrack = await this.findOne(id);
 
-    const isExistsArtist = this.db.checkEntityExistence(
-      body.artistId,
-      EDbEntity.ARTISTS,
-    );
-    const isExistsAlbum = this.db.checkEntityExistence(
-      body.albumId,
-      EDbEntity.ALBUMS,
-    );
-
-    if (body.artistId && !isExistsArtist) {
-      throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
-    }
-
-    if (body.albumId && !isExistsAlbum) {
-      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
-    }
+    await this.checkEntityExistence(body);
 
     currentTrack.albumId = body.albumId;
     currentTrack.artistId = body.artistId;
@@ -75,5 +70,17 @@ export class TrackService {
     currentTrack.duration = body.duration;
 
     return currentTrack;
+  }
+
+  async delete(id: string) {
+    const currentTrack = await this.findOne(id);
+
+    this.db.tracks = this.db.tracks.filter(
+      (track) => track.id !== currentTrack.id,
+    );
+
+    this.db.tracks = this.db.tracks.filter(
+      (track) => track.id !== currentTrack.id,
+    );
   }
 }
