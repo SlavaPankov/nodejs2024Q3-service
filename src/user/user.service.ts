@@ -8,6 +8,7 @@ import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
 import { UserEntity } from './entity/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -41,5 +42,22 @@ export class UserService {
     this.db.users.push(createdUser);
 
     return createdUser;
+  }
+
+  async update(id: string, { oldPassword, newPassword }: UpdateUserDto) {
+    const currentUser = await this.findById(id);
+
+    if (currentUser.password !== oldPassword) {
+      throw new HttpException(
+        EErrorMessage.PASSWORD_NOT_MATCH,
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    currentUser.password = newPassword;
+    currentUser.version += 1;
+    currentUser.updatedAt = Date.now();
+
+    return currentUser;
   }
 }
