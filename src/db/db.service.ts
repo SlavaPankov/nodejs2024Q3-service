@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { EDbEntity } from '../types/dbentity';
-import { IUser } from '../types/user';
 import { IAlbum } from '../types/album';
 import { IArtist } from '../types/artist';
 import { ITrack } from '../types/track';
+import { UserEntity } from '../user/entity/user.entity';
 
 @Injectable()
 export class DbService {
-  users: IUser[] = [];
+  users: UserEntity[] = [];
   albums: IAlbum[] = [];
   artists: IArtist[] = [];
   tracks: ITrack[] = [];
@@ -19,8 +19,8 @@ export class DbService {
   };
 
   checkEntityExistence(entityId: string, entityType: EDbEntity) {
-    return !!(this[entityType] as (IUser | ITrack | IArtist | IAlbum)[]).find(
-      (entity) => entity.id === entityId,
-    );
+    return !!(
+      this[entityType] as (UserEntity | ITrack | IArtist | IAlbum)[]
+    ).find((entity) => entity.id === entityId);
   }
 }

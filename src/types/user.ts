@@ -7,11 +7,6 @@ export interface IUser {
   updatedAt: number;
 }
 
-export interface ICreateUserRequest {
-  login: string;
-  password: string;
-}
-
 export interface IUpdatePasswordRequest {
   oldPassword: string;
   newPassword: string;

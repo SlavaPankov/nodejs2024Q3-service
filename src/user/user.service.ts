@@ -1,6 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
+import { UserEntity } from './entity/user.entity';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class UserService {
@@ -18,5 +25,21 @@ export class UserService {
     }
 
     return currentUser;
+  }
+
+  async create(user: CreateUserDto) {
+    const createdUser = new UserEntity(user);
+
+    const currentUser = this.db.users.find(
+      (userItem) => userItem.login === createdUser.login,
+    );
+
+    if (currentUser) {
+      throw new HttpException(EErrorMessage.USER_EXISTS, HttpStatus.CONFLICT);
+    }
+
+    this.db.users.push(createdUser);
+
+    return createdUser;
   }
 }
