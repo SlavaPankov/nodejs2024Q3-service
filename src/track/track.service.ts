@@ -4,6 +4,7 @@ import { EErrorMessage } from '../types/messages';
 import { CreateTrackDto } from './dto/createTrack.dto';
 import { TrackEntity } from './entity/user.entity';
 import { EDbEntity } from '../types/dbentity';
+import { UpdateTrackDto } from './dto/updateTrack.dto';
 
 @Injectable()
 export class TrackService {
@@ -46,5 +47,33 @@ export class TrackService {
     this.db.tracks.push(createdTrack);
 
     return createdTrack;
+  }
+
+  async update(id: string, body: UpdateTrackDto) {
+    const currentTrack = await this.findOne(id);
+
+    const isExistsArtist = this.db.checkEntityExistence(
+      body.artistId,
+      EDbEntity.ARTISTS,
+    );
+    const isExistsAlbum = this.db.checkEntityExistence(
+      body.albumId,
+      EDbEntity.ALBUMS,
+    );
+
+    if (body.artistId && !isExistsArtist) {
+      throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
+    }
+
+    if (body.albumId && !isExistsAlbum) {
+      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
+    }
+
+    currentTrack.albumId = body.albumId;
+    currentTrack.artistId = body.artistId;
+    currentTrack.name = body.name;
+    currentTrack.duration = body.duration;
+
+    return currentTrack;
   }
 }
