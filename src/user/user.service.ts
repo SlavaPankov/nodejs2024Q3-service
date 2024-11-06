@@ -18,7 +18,7 @@ export class UserService {
     return this.db.users;
   }
 
-  async findById(id: string) {
+  async findOne(id: string) {
     const currentUser = this.db.users.find((user) => user.id === id);
 
     if (!currentUser) {
@@ -45,7 +45,7 @@ export class UserService {
   }
 
   async update(id: string, { oldPassword, newPassword }: UpdateUserDto) {
-    const currentUser = await this.findById(id);
+    const currentUser = await this.findOne(id);
 
     if (currentUser.password !== oldPassword) {
       throw new HttpException(
@@ -62,7 +62,7 @@ export class UserService {
   }
 
   async delete(id: string) {
-    const currentUser = await this.findById(id);
+    const currentUser = await this.findOne(id);
 
     this.db.users = this.db.users.filter((user) => user.id !== currentUser.id);
   }

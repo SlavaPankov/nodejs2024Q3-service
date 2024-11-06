@@ -24,8 +24,8 @@ export class UsersController {
   }
 
   @Get(':id')
-  findById(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.userService.findById(id);
+  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.userService.findOne(id);
   }
 
   @Post()
