@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
@@ -10,6 +12,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { EStatusCode } from '../types/statusCode';
 
 @Controller('user')
 export class UsersController {
@@ -36,5 +39,11 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.userService.update(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(EStatusCode.NO_CONTENT)
+  delete(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.userService.delete(id);
   }
 }

@@ -60,4 +60,10 @@ export class UserService {
 
     return currentUser;
   }
+
+  async delete(id: string) {
+    const currentUser = await this.findById(id);
+
+    this.db.users = this.db.users.filter((user) => user.id !== currentUser.id);
+  }
 }
