@@ -12,7 +12,11 @@ export class DbService {
   artists: ArtistEntity[] = [];
   tracks: TrackEntity[] = [];
 
-  favorites = {
+  favorites: {
+    artists: string[];
+    tracks: string[];
+    albums: string[];
+  } = {
     artists: [],
     albums: [],
     tracks: [],
