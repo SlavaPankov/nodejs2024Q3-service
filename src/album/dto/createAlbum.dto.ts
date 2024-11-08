@@ -16,10 +16,10 @@ export class CreateAlbumDto {
   year: number;
 
   @ValidateIf(({ artistId }) => artistId)
-  @IsString({ message: 'artistId must be a string or null' })
   @IsUUID('4', {
     message: 'artistId must be a UUID v4 string',
     each: true,
   })
+  @IsString({ message: 'artistId must be a string or null' })
   artistId: string | null;
 }

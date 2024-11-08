@@ -14,7 +14,7 @@ export class TrackService {
     artistId?: string;
     albumId?: string;
   }) {
-    if (body.artistId) {
+    if (Object.prototype.hasOwnProperty.call(body, 'artistId')) {
       const isExistsArtist = this.db.checkEntityExistence(
         body.artistId,
         EDbEntity.ARTISTS,
@@ -24,7 +24,7 @@ export class TrackService {
       }
     }
 
-    if (body.albumId) {
+    if (Object.prototype.hasOwnProperty.call(body, 'albumId')) {
       const isExistsAlbum = this.db.checkEntityExistence(
         body.albumId,
         EDbEntity.ALBUMS,

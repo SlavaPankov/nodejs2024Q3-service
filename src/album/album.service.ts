@@ -4,6 +4,7 @@ import { EErrorMessage } from '../types/messages';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { AlbumEntity } from './entity/album.entity';
 import { EDbEntity } from '../types/dbentity';
+import { UpdateAlbumDto } from './dto/updateAlbum.dto';
 
 @Injectable()
 export class AlbumService {
@@ -24,7 +25,7 @@ export class AlbumService {
   }
 
   async create(body: CreateAlbumDto) {
-    if (body.artistId) {
+    if (Object.prototype.hasOwnProperty.call(body, 'artistId')) {
       const isExistsArtist = this.db.checkEntityExistence(
         body.artistId,
         EDbEntity.ARTISTS,
@@ -39,5 +40,32 @@ export class AlbumService {
     this.db.albums.push(createdAlbum);
 
     return createdAlbum;
+  }
+
+  async update(id: string, body: UpdateAlbumDto) {
+    if (Object.prototype.hasOwnProperty.call(body, 'artistId')) {
+      const isExistsArtist = this.db.checkEntityExistence(
+        body.artistId,
+        EDbEntity.ARTISTS,
+      );
+
+      console.log(isExistsArtist);
+
+      if (!isExistsArtist) {
+        throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
+      }
+    }
+
+    const currentAlbum = await this.findOne(id);
+
+    currentAlbum.name = body.name;
+    currentAlbum.artistId = body.artistId;
+    currentAlbum.year = body.year;
+
+    return currentAlbum;
+  }
+
+  async delete(id: string) {
+    this.db.albums = this.db.albums.filter((album) => album.id !== id);
   }
 }
