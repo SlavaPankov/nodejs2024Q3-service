@@ -66,4 +66,43 @@ export class FavoriteService {
         throw new NotFoundException(`${type} doesn't exist`);
     }
   }
+
+  async deleteFavorite(id: string, type: string) {
+    switch (type) {
+      case 'album':
+      case 'track':
+      case 'artist':
+        const entity = `${type}s`;
+
+        const isExistEntity = this.db.checkEntityExistence(
+          id,
+          EDbEntity[entity.toUpperCase()],
+        );
+
+        if (!isExistEntity) {
+          throw new HttpException(
+            `${type} with current id not found`,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+          );
+        }
+
+        const currentFavorite = (this.db.favorites[entity] as string[]).find(
+          (favorite) => favorite === id,
+        );
+
+        if (!currentFavorite) {
+          throw new NotFoundException({
+            message: `${type} with current id is not in your favorites`,
+          });
+        }
+
+        this.db.favorites[entity] = (
+          this.db.favorites[entity] as string[]
+        ).filter((item) => item !== id);
+
+        return `${type} added to your favorites`;
+      default:
+        throw new NotFoundException(`${type} doesn't exist`);
+    }
+  }
 }

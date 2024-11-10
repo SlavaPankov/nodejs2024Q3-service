@@ -49,8 +49,6 @@ export class AlbumService {
         EDbEntity.ARTISTS,
       );
 
-      console.log(isExistsArtist);
-
       if (!isExistsArtist) {
         throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
       }
