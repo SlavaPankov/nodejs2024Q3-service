@@ -40,6 +40,28 @@ export class ArtistService {
   }
 
   async delete(id: string) {
+    const currentArtist = await this.findOne(id);
+
+    if (!currentArtist) {
+      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
+    }
+
+    this.db.tracks.forEach((track) => {
+      if (track.artistId === currentArtist.id) {
+        track.artistId = null;
+      }
+    });
+
+    this.db.albums.forEach((album) => {
+      if (album.artistId === currentArtist.id) {
+        album.artistId = null;
+      }
+    });
+
+    this.db.favorites.artists = this.db.favorites.artists.filter(
+      (albumId) => albumId !== currentArtist.id,
+    );
+
     this.db.artists = this.db.artists.filter((artist) => artist.id !== id);
   }
 }
