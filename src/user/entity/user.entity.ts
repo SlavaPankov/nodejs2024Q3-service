@@ -12,7 +12,7 @@ export class UserEntity implements IUser {
   @Exclude()
   password: string;
 
-  constructor({ login, password }: Partial<IUser>) {
+  constructor({ login, password }: Partial<UserEntity>) {
     this.id = v4();
     this.login = login;
     this.password = password;
