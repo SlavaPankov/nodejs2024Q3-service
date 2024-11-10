@@ -1,9 +1,14 @@
-import { Controller, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 
 @Controller('favs')
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
+
+  @Get()
+  findAll() {
+    return this.favoriteService.findAll();
+  }
 
   @Post(':type/:id')
   createFavoriteTrack(

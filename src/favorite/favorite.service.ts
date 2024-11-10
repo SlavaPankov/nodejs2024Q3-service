@@ -6,11 +6,30 @@ import {
 } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { EDbEntity } from '../types/dbentity';
-import { EErrorMessage } from '../types/messages';
+import { ArtistEntity } from '../artist/entity/artist.entity';
+import { TrackEntity } from '../track/entity/user.entity';
+import { AlbumEntity } from '../album/entity/album.entity';
 
 @Injectable()
 export class FavoriteService {
   constructor(private db: DbService) {}
+
+  private findEntities(
+    entities: (ArtistEntity | TrackEntity | AlbumEntity)[],
+    favorites: string[],
+  ) {
+    return favorites
+      .map((id) => entities.find((item) => item.id === id))
+      .filter((entity) => entity);
+  }
+
+  async findAll() {
+    return {
+      albums: this.findEntities(this.db.albums, this.db.favorites.albums),
+      artists: this.findEntities(this.db.artists, this.db.favorites.artists),
+      tracks: this.findEntities(this.db.tracks, this.db.favorites.tracks),
+    };
+  }
 
   async addFavorite(id: string, type: string) {
     switch (type) {
