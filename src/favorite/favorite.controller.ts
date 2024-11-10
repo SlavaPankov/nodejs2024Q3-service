@@ -5,10 +5,11 @@ import { FavoriteService } from './favorite.service';
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
-  @Post('track/:id')
+  @Post(':type/:id')
   createFavoriteTrack(
+    @Param('type') type: string,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ) {
-    return this.favoriteService.createFavoriteTrack(id);
+    return this.favoriteService.addFavorite(id, type);
   }
 }
