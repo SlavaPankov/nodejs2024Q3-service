@@ -14,7 +14,7 @@ export class TrackService {
     artistId?: string;
     albumId?: string;
   }) {
-    if (Object.prototype.hasOwnProperty.call(body, 'artistId')) {
+    if (Object.prototype.hasOwnProperty.call(body, 'artistId') && body.artistId !== null) {
       const isExistsArtist = this.db.checkEntityExistence(
         body.artistId,
         EDbEntity.ARTISTS,
@@ -24,7 +24,7 @@ export class TrackService {
       }
     }
 
-    if (Object.prototype.hasOwnProperty.call(body, 'albumId')) {
+    if (Object.prototype.hasOwnProperty.call(body, 'albumId') && body.albumId !== null) {
       const isExistsAlbum = this.db.checkEntityExistence(
         body.albumId,
         EDbEntity.ALBUMS,

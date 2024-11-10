@@ -25,7 +25,10 @@ export class AlbumService {
   }
 
   async create(body: CreateAlbumDto) {
-    if (Object.prototype.hasOwnProperty.call(body, 'artistId')) {
+    if (
+      Object.prototype.hasOwnProperty.call(body, 'artistId') &&
+      body.artistId !== null
+    ) {
       const isExistsArtist = this.db.checkEntityExistence(
         body.artistId,
         EDbEntity.ARTISTS,
@@ -43,7 +46,10 @@ export class AlbumService {
   }
 
   async update(id: string, body: UpdateAlbumDto) {
-    if (Object.prototype.hasOwnProperty.call(body, 'artistId')) {
+    if (
+      Object.prototype.hasOwnProperty.call(body, 'artistId') &&
+      body.artistId !== null
+    ) {
       const isExistsArtist = this.db.checkEntityExistence(
         body.artistId,
         EDbEntity.ARTISTS,
@@ -64,6 +70,22 @@ export class AlbumService {
   }
 
   async delete(id: string) {
+    const currentAlbum = await this.findOne(id);
+
+    if (!currentAlbum) {
+      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
+    }
+
+    this.db.tracks.forEach((track) => {
+      if (track.albumId === currentAlbum.id) {
+        track.albumId = null;
+      }
+    });
+
+    this.db.favorites.albums = this.db.favorites.albums.filter(
+      (albumId) => albumId !== currentAlbum.id,
+    );
+
     this.db.albums = this.db.albums.filter((album) => album.id !== id);
   }
 }
