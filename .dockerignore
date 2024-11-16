@@ -6,3 +6,4 @@ README.md
 /dist
 .env
 .env.example
+/prisma/database.db
