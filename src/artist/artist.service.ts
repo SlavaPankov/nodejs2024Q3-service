@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EErrorMessage } from '../types/messages';
-import { ArtistEntity } from './entities/artist.entity';
 import { CreateArtistDto } from './dto/createArtist.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
@@ -24,11 +23,7 @@ export class ArtistService {
   }
 
   async create(body: CreateArtistDto) {
-    const createdArtist = new ArtistEntity(body);
-
-    this.prisma.artist.create({ data: createdArtist });
-
-    return createdArtist;
+    return this.prisma.artist.create({ data: body });
   }
 
   async update(id: string, body: CreateArtistDto) {

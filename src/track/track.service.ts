@@ -1,52 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
 import { CreateTrackDto } from './dto/createTrack.dto';
-import { TrackEntity } from './entities/user.entity';
-import { EDbEntity } from '../types/dbentity';
 import { UpdateTrackDto } from './dto/updateTrack.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TrackService {
-  constructor(private db: DbService) {}
-
-  private async checkEntityExistence(body: {
-    artistId?: string;
-    albumId?: string;
-  }) {
-    if (
-      Object.prototype.hasOwnProperty.call(body, 'artistId') &&
-      body.artistId !== null
-    ) {
-      const isExistsArtist = this.db.checkEntityExistence(
-        body.artistId,
-        EDbEntity.ARTISTS,
-      );
-      if (!isExistsArtist) {
-        throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
-      }
-    }
-
-    if (
-      Object.prototype.hasOwnProperty.call(body, 'albumId') &&
-      body.albumId !== null
-    ) {
-      const isExistsAlbum = this.db.checkEntityExistence(
-        body.albumId,
-        EDbEntity.ALBUMS,
-      );
-      if (!isExistsAlbum) {
-        throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
-      }
-    }
-  }
+  constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.db.tracks;
+    return this.prisma.track.findMany();
   }
 
   async findOne(id: string) {
-    const currentTrack = this.db.tracks.find((track) => track.id === id);
+    const currentTrack = this.prisma.track.findUnique({ where: { id } });
 
     if (!currentTrack) {
       throw new NotFoundException(EErrorMessage.TRACK_NOT_FOUND);
@@ -56,37 +24,37 @@ export class TrackService {
   }
 
   async create(body: CreateTrackDto) {
-    await this.checkEntityExistence(body);
-
-    const createdTrack = new TrackEntity(body);
-
-    this.db.tracks.push(createdTrack);
-
-    return createdTrack;
+    return this.prisma.track.create({ data: body });
   }
 
   async update(id: string, body: UpdateTrackDto) {
-    const currentTrack = await this.findOne(id);
-
-    await this.checkEntityExistence(body);
-
-    currentTrack.albumId = body.albumId;
-    currentTrack.artistId = body.artistId;
-    currentTrack.name = body.name;
-    currentTrack.duration = body.duration;
-
-    return currentTrack;
+    try {
+      return await this.prisma.track.update({
+        where: { id },
+        data: body,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Track with id ${id} not found`);
+      }
+      throw error;
+    }
   }
 
   async delete(id: string) {
-    const currentTrack = await this.findOne(id);
-
-    this.db.tracks = this.db.tracks.filter(
-      (track) => track.id !== currentTrack.id,
-    );
-
-    this.db.tracks = this.db.tracks.filter(
-      (track) => track.id !== currentTrack.id,
-    );
+    try {
+      return await this.prisma.track.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Track with id ${id} not found`);
+      }
+      throw error;
+    }
   }
 }

@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Контейнер для приложения
   app:
     build:
       context: .
@@ -9,7 +8,7 @@ services:
     volumes:
       - ./.env:/usr/src/app/.env
     environment:
-      DB_HOST: postgres # Адрес контейнера базы данных
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: user
       DB_PASSWORD: admin
@@ -19,10 +18,9 @@ services:
     networks:
       - app-network
     ports:
-      - '4000:4000' # Порт для доступа к приложению
-      - '5555:5555' # Порт для доступа к Prisma Studio
+      - '4000:4000'
+      - '5555:5555'
 
-    # Контейнер для базы данных PostgreSQL
   postgres:
     image: postgres:17
     environment:
@@ -34,7 +32,7 @@ services:
     networks:
       - app-network
     ports:
-      - '5432:5432' # Опционально, для доступа к базе данных вне контейнера
+      - '5432:5432'
 
 networks:
   app-network:

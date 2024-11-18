@@ -1,7 +1,9 @@
 import {
   Controller,
   Delete,
-  Get, HttpCode, HttpStatus,
+  Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -19,7 +21,7 @@ export class FavoriteController {
 
   @Post(':type/:id')
   addFavorite(
-    @Param('type') type: string,
+    @Param('type') type: 'artist' | 'album' | 'track',
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ) {
     return this.favoriteService.addFavorite(id, type);
@@ -28,7 +30,7 @@ export class FavoriteController {
   @Delete(':type/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteFavorite(
-    @Param('type') type: string,
+    @Param('type') type: 'artist' | 'album' | 'track',
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ) {
     return this.favoriteService.deleteFavorite(id, type);
