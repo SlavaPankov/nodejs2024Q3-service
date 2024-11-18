@@ -1,42 +1,52 @@
-version: '3.8'
-
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./.env:/usr/src/app/.env
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: user
-      DB_PASSWORD: admin
-      DB_NAME: db
-    depends_on:
-      - postgres
-    networks:
-      - app-network
-    ports:
-      - '4000:4000'
-      - '5555:5555'
 
   postgres:
-    image: postgres:17
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: db
+    image: postgres:13-alpine
+    container_name: postgres
+    restart: always
+    env_file: .env
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/lib/postgresql
+    ports:
+      - '${DB_PORT}:${DB_PORT}'
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  migration:
+    image: pankovslava/nodejs2024q3-service-app:latest
+    container_name: migration
+    restart: 'on-failure'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    networks:
+      - app-network
+    command: npm run migrate
+
+  app:
+    image: pankovslava/nodejs2024q3-service-app:latest
+    container_name: app
+    restart: always
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    env_file: .env
     ports:
-      - '5432:5432'
+      - '${PORT}:${PORT}'
+    networks:
+      - app-network
 
 networks:
   app-network:
-    driver: bridge
+    driver: 'bridge'
 
 volumes:
-  pgdata:
+  postgres_data:
+  postgres_logs:

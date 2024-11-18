@@ -32,7 +32,7 @@ export class UserService {
   async create(user: CreateUserDto) {
     const createdUser = new UserEntity(user);
 
-    const currentUser = this.prisma.user.findUnique({
+    const currentUser = await this.prisma.user.findUnique({
       where: { login: createdUser.login },
     });
 
