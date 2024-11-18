@@ -1,1 +1,7 @@
-FROM postgres:17.1-alpine3.20
+FROM postgres:alpine
+
+ENV POSTGRES_USER=user
+ENV POSTGRES_PASSWORD=admin
+ENV POSTGRES_DB=db
+
+EXPOSE 5432

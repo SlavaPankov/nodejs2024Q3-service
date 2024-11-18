@@ -1,18 +1,15 @@
-FROM node:22.9.0 as build
+FROM node:22.9.0
 
-WORKDIR /user/app
+WORKDIR /usr/src/app
 
-COPY . .
+COPY package*.json ./
 
 RUN npm install
 
+COPY . .
 
-FROM node:22.9.0-alpine
+RUN npx prisma generate
 
-WORKDIR /user/app
+EXPOSE 4000
 
-COPY --from=build /user/app /user/app
-
-EXPOSE $PORT
-
-CMD ["npm", "run", "start:dev:migrate"]
+CMD ["npm", "start"]

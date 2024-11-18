@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
+    "docker:down": "docker-compose down -v",
     "docker:scan": "docker scout cves pankovslava/nodejs2024Q3-service-app:1.1 && docker scout cves pankovslava/nodejs2024q3-service-db:1.1",
     "docker:push": "docker-compose build && docker-compose push",
     "docker:studio": "docker exec -it app npx prisma studio",
@@ -34,6 +34,7 @@
     "@nestjs/mapped-types": "^1.0.1",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/swagger": "^5.2.1",
+    "@prisma/client": "^5.22.0",
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
