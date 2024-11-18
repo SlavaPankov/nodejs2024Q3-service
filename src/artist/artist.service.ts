@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { EErrorMessage } from '../types/messages';
 import { CreateArtistDto } from './dto/createArtist.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ArtistService {
@@ -13,9 +12,11 @@ export class ArtistService {
   }
 
   async findOne(id: string) {
-    const currentArtist = this.prisma.artist.findUnique({ where: { id } });
+    const currentArtist = await this.prisma.artist.findUnique({
+      where: { id },
+    });
 
-    if (!currentArtist) {
+    if (currentArtist === null) {
       throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
     }
 
@@ -27,33 +28,28 @@ export class ArtistService {
   }
 
   async update(id: string, body: CreateArtistDto) {
-    try {
-      return await this.prisma.artist.update({
-        where: { id },
-        data: body,
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`Artist with id ${id} not found`);
-      }
-      throw error;
+    const currentArtist = await this.prisma.artist.findUnique({
+      where: { id },
+    });
+
+    if (currentArtist === null) {
+      throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
     }
+    return this.prisma.artist.update({
+      where: { id },
+      data: body,
+    });
   }
 
   async delete(id: string) {
-    try {
-      return await this.prisma.artist.delete({ where: { id } });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`Artist with id ${id} not found`);
-      }
-      throw error;
+    const currentArtist = await this.prisma.artist.findUnique({
+      where: { id },
+    });
+
+    if (currentArtist === null) {
+      throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
     }
+
+    return this.prisma.artist.delete({ where: { id } });
   }
 }

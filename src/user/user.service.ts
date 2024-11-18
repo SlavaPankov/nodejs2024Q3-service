@@ -9,7 +9,6 @@ import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -20,9 +19,9 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    const currentUser = this.prisma.user.findUnique({ where: { id } });
+    const currentUser = await this.prisma.user.findUnique({ where: { id } });
 
-    if (!currentUser) {
+    if (currentUser === null) {
       throw new NotFoundException(EErrorMessage.USER_NOT_FOUND);
     }
 
@@ -36,17 +35,34 @@ export class UserService {
       where: { login: createdUser.login },
     });
 
-    if (currentUser) {
+    if (currentUser !== null) {
       throw new HttpException(EErrorMessage.USER_EXISTS, HttpStatus.CONFLICT);
     }
 
-    this.prisma.user.create({ data: user });
+    const userData = await this.prisma.user.create({
+      data: user,
+      select: {
+        id: true,
+        login: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    return createdUser;
+    return {
+      ...userData,
+      createdAt: userData.createdAt.getTime(),
+      updatedAt: userData.updatedAt.getTime(),
+    };
   }
 
   async update(id: string, { oldPassword, newPassword }: UpdateUserDto) {
     const currentUser = await this.prisma.user.findUnique({ where: { id } });
+
+    if (currentUser === null) {
+      throw new NotFoundException(EErrorMessage.USER_NOT_FOUND);
+    }
 
     if (currentUser.password !== oldPassword) {
       throw new HttpException(
@@ -55,27 +71,34 @@ export class UserService {
       );
     }
 
-    this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { password: newPassword, version: { increment: 1 } },
+      select: {
+        id: true,
+        login: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    return currentUser;
+    return {
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.getTime(),
+      updatedAt: updatedUser.updatedAt.getTime(),
+    };
   }
 
   async delete(id: string) {
-    try {
-      return await this.prisma.user.delete({
-        where: { id },
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`User with id ${id} not found`);
-      }
-      throw error;
+    const currentUser = await this.prisma.user.findUnique({ where: { id } });
+
+    if (currentUser === null) {
+      throw new NotFoundException(EErrorMessage.USER_NOT_FOUND);
     }
+
+    await this.prisma.user.delete({
+      where: { id },
+    });
   }
 }

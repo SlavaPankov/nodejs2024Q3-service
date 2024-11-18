@@ -1,6 +1,12 @@
-import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+@Injectable()
 export class FavoriteService {
   constructor(private prisma: PrismaService) {}
 
@@ -85,6 +91,7 @@ export class FavoriteService {
 
   async findAll() {
     const favorite = await this.prisma.favorite.findFirst();
+
     if (!favorite) {
       return { artists: [], albums: [], tracks: [] };
     }

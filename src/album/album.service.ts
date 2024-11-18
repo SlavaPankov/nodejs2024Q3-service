@@ -3,7 +3,6 @@ import { EErrorMessage } from '../types/messages';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AlbumService {
@@ -14,9 +13,9 @@ export class AlbumService {
   }
 
   async findOne(id: string) {
-    const album = this.prisma.album.findUnique({ where: { id } });
+    const album = await this.prisma.album.findUnique({ where: { id } });
 
-    if (!album) {
+    if (album === null) {
       throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
     }
 
@@ -28,33 +27,25 @@ export class AlbumService {
   }
 
   async update(id: string, body: UpdateAlbumDto) {
-    try {
-      return await this.prisma.album.update({
-        where: { id },
-        data: body,
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`Album with id ${id} not found`);
-      }
-      throw error;
+    const album = await this.prisma.album.findUnique({ where: { id } });
+
+    if (album === null) {
+      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
     }
+
+    return this.prisma.album.update({
+      where: { id },
+      data: body,
+    });
   }
 
   async delete(id: string) {
-    try {
-      return await this.prisma.album.delete({ where: { id } });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException(`Album with id ${id} not found`);
-      }
-      throw error;
+    const album = await this.prisma.album.findUnique({ where: { id } });
+
+    if (album === null) {
+      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
     }
+
+    return this.prisma.album.delete({ where: { id } });
   }
 }
