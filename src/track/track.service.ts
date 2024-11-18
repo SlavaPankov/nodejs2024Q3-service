@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
 import { CreateTrackDto } from './dto/createTrack.dto';
-import { TrackEntity } from './entity/user.entity';
+import { TrackEntity } from './entities/user.entity';
 import { EDbEntity } from '../types/dbentity';
 import { UpdateTrackDto } from './dto/updateTrack.dto';
 
@@ -14,7 +14,10 @@ export class TrackService {
     artistId?: string;
     albumId?: string;
   }) {
-    if (Object.prototype.hasOwnProperty.call(body, 'artistId') && body.artistId !== null) {
+    if (
+      Object.prototype.hasOwnProperty.call(body, 'artistId') &&
+      body.artistId !== null
+    ) {
       const isExistsArtist = this.db.checkEntityExistence(
         body.artistId,
         EDbEntity.ARTISTS,
@@ -24,7 +27,10 @@ export class TrackService {
       }
     }
 
-    if (Object.prototype.hasOwnProperty.call(body, 'albumId') && body.albumId !== null) {
+    if (
+      Object.prototype.hasOwnProperty.call(body, 'albumId') &&
+      body.albumId !== null
+    ) {
       const isExistsAlbum = this.db.checkEntityExistence(
         body.albumId,
         EDbEntity.ALBUMS,

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
-import { ArtistEntity } from './entity/artist.entity';
+import { ArtistEntity } from './entities/artist.entity';
 import { CreateArtistDto } from './dto/createArtist.dto';
 
 @Injectable()

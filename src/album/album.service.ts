@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
-import { AlbumEntity } from './entity/album.entity';
+import { AlbumEntity } from './entities/album.entity';
 import { EDbEntity } from '../types/dbentity';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
 
