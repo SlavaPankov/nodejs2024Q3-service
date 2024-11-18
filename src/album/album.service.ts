@@ -1,21 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
-import { AlbumEntity } from './entities/album.entity';
-import { EDbEntity } from '../types/dbentity';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AlbumService {
-  constructor(private db: DbService) {}
+  constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.db.albums;
+    return this.prisma.album.findMany();
   }
 
   async findOne(id: string) {
-    const album = this.db.albums.find((album) => album.id === id);
+    const album = this.prisma.album.findUnique({ where: { id } });
 
     if (!album) {
       throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
@@ -25,67 +24,37 @@ export class AlbumService {
   }
 
   async create(body: CreateAlbumDto) {
-    if (
-      Object.prototype.hasOwnProperty.call(body, 'artistId') &&
-      body.artistId !== null
-    ) {
-      const isExistsArtist = this.db.checkEntityExistence(
-        body.artistId,
-        EDbEntity.ARTISTS,
-      );
-      if (!isExistsArtist) {
-        throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
-      }
-    }
-
-    const createdAlbum = new AlbumEntity(body);
-
-    this.db.albums.push(createdAlbum);
-
-    return createdAlbum;
+    return this.prisma.album.create({ data: body });
   }
 
   async update(id: string, body: UpdateAlbumDto) {
-    if (
-      Object.prototype.hasOwnProperty.call(body, 'artistId') &&
-      body.artistId !== null
-    ) {
-      const isExistsArtist = this.db.checkEntityExistence(
-        body.artistId,
-        EDbEntity.ARTISTS,
-      );
-
-      if (!isExistsArtist) {
-        throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
+    try {
+      return await this.prisma.album.update({
+        where: { id },
+        data: body,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Album with id ${id} not found`);
       }
+      throw error;
     }
-
-    const currentAlbum = await this.findOne(id);
-
-    currentAlbum.name = body.name;
-    currentAlbum.artistId = body.artistId;
-    currentAlbum.year = body.year;
-
-    return currentAlbum;
   }
 
   async delete(id: string) {
-    const currentAlbum = await this.findOne(id);
-
-    if (!currentAlbum) {
-      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
-    }
-
-    this.db.tracks.forEach((track) => {
-      if (track.albumId === currentAlbum.id) {
-        track.albumId = null;
+    try {
+      return await this.prisma.album.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Album with id ${id} not found`);
       }
-    });
-
-    this.db.favorites.albums = this.db.favorites.albums.filter(
-      (albumId) => albumId !== currentAlbum.id,
-    );
-
-    this.db.albums = this.db.albums.filter((album) => album.id !== id);
+      throw error;
+    }
   }
 }
