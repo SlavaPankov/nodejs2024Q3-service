@@ -1,19 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DbService } from '../db/db.service';
 import { EErrorMessage } from '../types/messages';
 import { ArtistEntity } from './entities/artist.entity';
 import { CreateArtistDto } from './dto/createArtist.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ArtistService {
-  constructor(private db: DbService) {}
+  constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.db.artists;
+    return this.prisma.artist.findMany();
   }
 
   async findOne(id: string) {
-    const currentArtist = this.db.artists.find((artist) => artist.id === id);
+    const currentArtist = this.prisma.artist.findUnique({ where: { id } });
 
     if (!currentArtist) {
       throw new NotFoundException(EErrorMessage.ARTIST_NOT_FOUND);
@@ -25,43 +26,39 @@ export class ArtistService {
   async create(body: CreateArtistDto) {
     const createdArtist = new ArtistEntity(body);
 
-    this.db.artists.push(createdArtist);
+    this.prisma.artist.create({ data: createdArtist });
 
     return createdArtist;
   }
 
   async update(id: string, body: CreateArtistDto) {
-    const currentArtist = await this.findOne(id);
-
-    currentArtist.name = body.name;
-    currentArtist.grammy = body.grammy;
-
-    return currentArtist;
+    try {
+      return await this.prisma.artist.update({
+        where: { id },
+        data: body,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Artist with id ${id} not found`);
+      }
+      throw error;
+    }
   }
 
   async delete(id: string) {
-    const currentArtist = await this.findOne(id);
-
-    if (!currentArtist) {
-      throw new NotFoundException(EErrorMessage.ALBUM_NOT_FOUND);
+    try {
+      return await this.prisma.artist.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Artist with id ${id} not found`);
+      }
+      throw error;
     }
-
-    this.db.tracks.forEach((track) => {
-      if (track.artistId === currentArtist.id) {
-        track.artistId = null;
-      }
-    });
-
-    this.db.albums.forEach((album) => {
-      if (album.artistId === currentArtist.id) {
-        album.artistId = null;
-      }
-    });
-
-    this.db.favorites.artists = this.db.favorites.artists.filter(
-      (albumId) => albumId !== currentArtist.id,
-    );
-
-    this.db.artists = this.db.artists.filter((artist) => artist.id !== id);
   }
 }
