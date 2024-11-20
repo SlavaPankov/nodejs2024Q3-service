@@ -1,0 +1,52 @@
+services:
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres
+    restart: always
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/lib/postgresql
+    ports:
+      - '${DB_PORT}:${DB_PORT}'
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  migration:
+    image: pankovslava/nodejs2024q3-service-app:latest
+    container_name: migration
+    restart: 'on-failure'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    networks:
+      - app-network
+    command: npm run migrate
+
+  app:
+    image: pankovslava/nodejs2024q3-service-app:latest
+    container_name: app
+    restart: always
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    env_file: .env
+    ports:
+      - '${PORT}:${PORT}'
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: 'bridge'
+
+volumes:
+  postgres_data:
+  postgres_logs:

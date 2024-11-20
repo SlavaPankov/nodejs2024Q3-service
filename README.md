@@ -8,7 +8,7 @@
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/SlavaPankov/nodejs2024Q3-service
 ```
 
 ## Installing NPM modules
@@ -21,6 +21,23 @@ npm install
 
 ```
 npm start
+```
+
+## Running app in Docker Desktop
+
+To start the Application with DB:
+```bash
+npm run docker:up
+```
+
+To run Tests against app:
+```bash
+npm run test
+```
+
+To vulnerabilities scanning
+```bash
+npm run docker:scan
 ```
 
 After starting the app on port (4000 as default) you can open
