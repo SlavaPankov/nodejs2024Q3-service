@@ -9,6 +9,9 @@ import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { hashPassword } from '../utils/hashPassword';
+import { IUser } from '../types/user';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -28,33 +31,13 @@ export class UserService {
     return currentUser;
   }
 
-  async create(user: CreateUserDto) {
-    const createdUser = new UserEntity(user);
+  async create(createUserDto: CreateUserDto) {
+    const login = createUserDto.login;
+    const password = await hashPassword(createUserDto.password);
 
-    const currentUser = await this.prisma.user.findUnique({
-      where: { login: createdUser.login },
-    });
+    const user = await this.prisma.user.create({ data: { login, password } });
 
-    if (currentUser !== null) {
-      throw new HttpException(EErrorMessage.USER_EXISTS, HttpStatus.CONFLICT);
-    }
-
-    const userData = await this.prisma.user.create({
-      data: user,
-      select: {
-        id: true,
-        login: true,
-        version: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    return {
-      ...userData,
-      createdAt: userData.createdAt.getTime(),
-      updatedAt: userData.updatedAt.getTime(),
-    };
+    return new UserEntity(user as unknown as IUser);
   }
 
   async update(id: string, { oldPassword, newPassword }: UpdateUserDto) {
@@ -71,9 +54,22 @@ export class UserService {
       );
     }
 
+    const passwordMatches = await bcrypt.compare(
+      oldPassword,
+      currentUser.password,
+    );
+    if (!passwordMatches) {
+      throw new HttpException(
+        'Old password does not match',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { password: newPassword, version: { increment: 1 } },
+      data: { password: hashedPassword, version: { increment: 1 } },
       select: {
         id: true,
         login: true,
