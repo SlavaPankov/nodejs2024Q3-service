@@ -1,23 +1,21 @@
-import { IUser } from '../../types/user';
-import { Exclude } from 'class-transformer';
-import { v4 } from 'uuid';
+import { User } from '@prisma/client';
 
-export class UserEntity implements IUser {
+export class UserEntity {
   id: string;
   login: string;
   version: number;
+
   createdAt: number;
   updatedAt: number;
 
-  @Exclude()
-  password: string;
+  constructor(user: User) {
+    this.id = user.id;
 
-  constructor({ login, password }: Partial<UserEntity>) {
-    this.id = v4();
-    this.login = login;
-    this.password = password;
-    this.createdAt = Date.now();
-    this.updatedAt = Date.now();
-    this.version = 1;
+    this.login = user.login;
+
+    this.version = user.version;
+
+    this.createdAt = new Date(user.createdAt).getTime();
+    this.updatedAt = new Date(user.updatedAt).getTime();
   }
 }

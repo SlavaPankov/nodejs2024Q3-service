@@ -15,4 +15,4 @@ COPY --from=build /user/app /user/app
 
 EXPOSE $PORT
 
-CMD ["npm", "run", "start:dev:migrate"]
+CMD ["sh", "-c", "npm run migrate && npm run start:dev"]

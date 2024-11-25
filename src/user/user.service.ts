@@ -9,19 +9,15 @@ import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { IUser } from '../types/user';
-import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   private async hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(parseInt(process.env.CRYPT_SALT));
+
     return await bcrypt.hash(password, salt);
   }
 
@@ -30,7 +26,16 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    const currentUser = await this.prisma.user.findUnique({ where: { id } });
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        login: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
     if (currentUser === null) {
       throw new NotFoundException(EErrorMessage.USER_NOT_FOUND);
@@ -45,7 +50,7 @@ export class UserService {
 
     const user = await this.prisma.user.create({ data: { login, password } });
 
-    return new UserEntity(user as unknown as IUser);
+    return new UserEntity(user);
   }
 
   async update(id: string, { oldPassword, newPassword }: UpdateUserDto) {
@@ -55,17 +60,11 @@ export class UserService {
       throw new NotFoundException(EErrorMessage.USER_NOT_FOUND);
     }
 
-    if (currentUser.password !== oldPassword) {
-      throw new HttpException(
-        EErrorMessage.PASSWORD_NOT_MATCH,
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
     const passwordMatches = await bcrypt.compare(
-      oldPassword,
-      currentUser.password,
+      oldPassword.trim(),
+      currentUser.password.trim(),
     );
+
     if (!passwordMatches) {
       throw new HttpException(
         'Old password does not match',

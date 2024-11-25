@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { compare } from 'bcrypt';
+import { compare } from 'bcryptjs';
 
 import { CreateUserDto } from '../user/dto/createUser.dto';
 import { UpdateAuthDto } from './dto/updateAuth.dto';
