@@ -9,13 +9,21 @@ import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { hashPassword } from '../utils/hashPassword';
 import { IUser } from '../types/user';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {}
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(parseInt(process.env.CRYPT_SALT));
+    return await bcrypt.hash(password, salt);
+  }
 
   async findAll() {
     return this.prisma.user.findMany();
@@ -33,7 +41,7 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const login = createUserDto.login;
-    const password = await hashPassword(createUserDto.password);
+    const password = await this.hashPassword(createUserDto.password);
 
     const user = await this.prisma.user.create({ data: { login, password } });
 
@@ -65,7 +73,7 @@ export class UserService {
       );
     }
 
-    const hashedPassword = await hashPassword(newPassword);
+    const hashedPassword = await this.hashPassword(newPassword);
 
     const updatedUser = await this.prisma.user.update({
       where: { id },

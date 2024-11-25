@@ -1,10 +1,7 @@
-import { IsString, IsDefined, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class UpdateAuthDto {
-  @IsString({ message: 'Refresh token must be a string' })
-  @IsDefined({ message: 'Refresh token is required' })
-  @MinLength(30, {
-    message: 'Refresh token must be at least 30 characters long',
-  })
+  @IsNotEmpty({ message: 'The refresh token is required.' })
+  @IsString({ message: 'The refresh token must be a string.' })
   refreshToken: string;
 }
