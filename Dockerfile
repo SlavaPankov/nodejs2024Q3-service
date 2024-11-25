@@ -1,14 +1,18 @@
-FROM node:22-alpine
-WORKDIR /app
+FROM node:20.11.1 AS build
 
-COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
-
-COPY prisma ./prisma
-RUN npx prisma generate
+WORKDIR /user/app
 
 COPY . .
-RUN npm run build
 
-EXPOSE 4000
-CMD ["node", "dist/main.js"]
+RUN npm install
+
+
+FROM node:20.11.1-alpine
+
+WORKDIR /user/app
+
+COPY --from=build /user/app /user/app
+
+EXPOSE $PORT
+
+CMD ["npm", "run", "start:dev:migrate"]
