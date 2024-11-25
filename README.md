@@ -17,60 +17,88 @@ git clone https://github.com/SlavaPankov/nodejs2024Q3-service
 npm install
 ```
 
-## Running application
+Create <kbd>.env</kbd> file in root folder, use <kbd>.env.example</kbd>
 
-```
-npm start
-```
+## Create and running docker container
 
-## Running app in Docker Desktop
+After executing the command, two images will be downloaded from Docker Hub, allowing you to run this application in Docker containers. This setup ensures that both the application and its required database are containerized, providing a consistent and isolated environment for your project.
 
-To start the Application with DB:
+---
+
+If you want to run this project locally, follow the steps below. It's important to note that you should change the **_HOST_** value in your <kbd>.env</kbd> file to **_localhost_** to indicate that the **_database_** will be running **_locally_**.
+
+###### 1. Start the Database:
+
+Open your terminal and run the following command to start up the database using Docker:
+
 ```bash
-npm run docker:up
+docker-compose up -d db
 ```
 
-To run Tests against app:
+###### 2. Deploy Prisma Migrations:
+
+Once the database is up and running, you need to deploy your Prisma migrations to set up the database schema. Execute the following command in your terminal:
+
 ```bash
-npm run test
+npx prisma migrate deploy
 ```
 
-To vulnerabilities scanning
+###### 3. Generate Prisma Client:
+
+After deploying migrations, generate the Prisma client to interact with your database from your application code. Run:
+
 ```bash
-npm run docker:scan
+npx prisma generate
 ```
 
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+###### 4. Start the Project:
+
+Finally, to start your project, use the command:
+
+```bash
+npm start:dev
+```
+
+This command launches your application in development mode, typically with hot reloading enabled.
+
+After create and starting the app on port (**4000** as default) you can open
+in your browser OpenAPI documentation by typing
+
+> http://localhost:4000/doc/
+
+Also, we can work with **postgresql** in manual mode through Prisma studio
+
+```bash
+npm docker:studio
+```
+
+And open a graphical user interface (GUI) in your browser to work with databases easily
+
+> http://localhost:5555
 
 ## Testing
 
 After application running open new terminal and enter:
 
-To run all tests without authorization
-
-```
+```bash
 npm run test
 ```
 
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
-```
-
-To run all test with authorization
-
-```
+```bash
 npm run test:auth
 ```
 
-To run only specific test suite with authorization
+```bash
+npm run test:refresh
+```
 
-```
-npm run test:auth -- <path to suite>
-```
+### To view logs within your Docker app container, navigate to the following directory:
+
+> ***.user/app/loggerHistory***
+
+>This directory contains the log history for your application, providing insights into its runtime behavior and any errors or warnings that have occurred. 
+
+Additionally, to facilitate log persistence and easy access, volumes for logging have been configured in the docker-compose.yml file. This setup ensures that logs are stored outside the container, allowing for easier retrieval and analysis without needing to access the container's filesystem directly.
 
 ### Auto-fix and format
 
