@@ -1,0 +1,9 @@
+/db
+/node_modules
+README.md
+/.git
+.gitignore
+/dist
+.env
+.env.example
+/prisma/database.db
